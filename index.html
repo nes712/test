@@ -1,2 +1,206 @@
-Hiiii Sam!!!
-HELLOOOOO!!
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flying Green Hearts</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: white;
+        }
+        canvas {
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: -1;
+        }
+        .content {
+            padding: 20px;
+            position: absolute;
+            z-index: 1;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        h1, p {
+            margin: 10px 0;
+            font-size: 2em;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="heartCanvas"></canvas>
+    <div class="content">
+        <h1>Hiiii Sam!!!</h1>
+        <p>HELLOOOOO!!</p>
+    </div>
+    <script>
+        const canvas = document.getElementById('heartCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Set canvas size to window size
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Heart class
+        class Heart {
+            constructor() {
+                this.reset();
+                this.y = Math.random() * canvas.height; // Start at random height
+            }
+
+            reset() {
+                this.x = -30;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 20 + 10;
+                this.speed = Math.random() * 2 + 1;
+                this.wave = Math.random() * 50;
+                this.waveSpeed = Math.random() * 0.02 + 0.01;
+                this.angle = 0;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y + Math.sin(this.angle) * this.wave);
+                
+                // Draw heart
+                ctx.beginPath();
+                ctx.fillStyle = '#2ecc71'; // Green color
+                const size = this.size;
+                ctx.moveTo(0, size);
+                ctx.bezierCurveTo(size, -size, size * 3, size, 0, size * 3);
+                ctx.bezierCurveTo(-size * 3, size, -size, -size, 0, size);
+                ctx.fill();
+                
+                ctx.restore();
+            }
+
+            update() {
+                this.x += this.speed;
+                this.angle += this.waveSpeed;
+                
+                // Reset when heart moves off screen
+                if (this.x > canvas.width + 30) {
+                    this.reset();
+                }
+            }
+        }
+
+        // Mouse class for the cute mouse
+        class Mouse {
+            constructor() {
+                this.reset();
+                this.groundLevel = canvas.height - 30; // Ground level for the mouse
+            }
+
+            reset() {
+                this.x = -50;
+                this.y = this.groundLevel;
+                this.speed = 3;
+                this.jumpForce = 0;
+                this.isJumping = false;
+                this.gravity = 0.5;
+                this.hopInterval = Math.random() * 1000 + 500;
+                this.lastHopTime = Date.now();
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+
+                // Body (grey ellipse)
+                ctx.beginPath();
+                ctx.fillStyle = '#808080';
+                ctx.ellipse(0, 0, 20, 15, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Ears (pink circles)
+                ctx.beginPath();
+                ctx.fillStyle = '#ffcce6';
+                ctx.arc(-10, -12, 8, 0, Math.PI * 2);
+                ctx.arc(10, -12, 8, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Eyes (black dots)
+                ctx.beginPath();
+                ctx.fillStyle = 'black';
+                ctx.arc(8, -2, 2, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Nose (pink)
+                ctx.beginPath();
+                ctx.fillStyle = '#ff99cc';
+                ctx.arc(15, 0, 3, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Tail (curved line)
+                ctx.beginPath();
+                ctx.strokeStyle = '#808080';
+                ctx.lineWidth = 2;
+                ctx.moveTo(-15, 0);
+                ctx.quadraticCurveTo(-25, -15, -35, -5);
+                ctx.stroke();
+
+                ctx.restore();
+            }
+
+            update() {
+                this.x += this.speed;
+
+                // Jumping logic
+                if (!this.isJumping && Date.now() - this.lastHopTime > this.hopInterval) {
+                    this.isJumping = true;
+                    this.jumpForce = -10;
+                    this.lastHopTime = Date.now();
+                    this.hopInterval = Math.random() * 1000 + 500; // Random interval between hops
+                }
+
+                if (this.isJumping) {
+                    this.y += this.jumpForce;
+                    this.jumpForce += this.gravity;
+
+                    if (this.y >= this.groundLevel) {
+                        this.y = this.groundLevel;
+                        this.isJumping = false;
+                        this.jumpForce = 0;
+                    }
+                }
+
+                // Reset when mouse moves off screen
+                if (this.x > canvas.width + 50) {
+                    this.reset();
+                }
+            }
+        }
+
+        // Create hearts and mouse
+        const hearts = Array.from({ length: 20 }, () => new Heart());
+        const mouse = new Mouse();
+
+        // Animation loop
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            hearts.forEach(heart => {
+                heart.update();
+                heart.draw();
+            });
+
+            mouse.update();
+            mouse.draw();
+            
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+</html>
